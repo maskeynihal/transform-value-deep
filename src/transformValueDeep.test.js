@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import transformValueDeep from "./transformValueDeep";
 
 describe("Transform Value Deep Test", () => {
@@ -278,5 +278,137 @@ describe("Transform Value Deep Test", () => {
     });
 
     it("transform value for object with ");
+  });
+
+  describe("For transformation with usage of key", () => {
+    it("call the transformation function with key for primitive datatype", () => {
+      const objectWithFunction = {
+        transformationFunction: (value, key) => ({ [key]: value }),
+      };
+
+      const spied = vi.spyOn(objectWithFunction, "transformationFunction");
+
+      const value = 1;
+
+      const transformedValue = transformValueDeep(
+        value,
+        objectWithFunction.transformationFunction
+      );
+
+      expect(spied).toHaveBeenCalled();
+
+      expect(spied.mock.calls[0]).toEqual([1]);
+
+      expect(transformedValue).toEqual({
+        undefined: 1,
+      });
+    });
+
+    it("call the transformation function with key for array", () => {
+      const objectWithFunction = {
+        transformationFunction: (value, key) => [value, key],
+      };
+
+      const spied = vi.spyOn(objectWithFunction, "transformationFunction");
+
+      const value = [1, 2, 3, 4];
+
+      const transformedValue = transformValueDeep(
+        value,
+        objectWithFunction.transformationFunction
+      );
+
+      expect(spied).toHaveBeenCalled();
+
+      expect(spied.mock.calls[0]).toEqual([1, 0]);
+
+      expect(transformedValue).toEqual([
+        [1, 0],
+        [2, 1],
+        [3, 2],
+        [4, 3],
+      ]);
+    });
+
+    it("call the transformation function with key for object", () => {
+      const objectWithFunction = {
+        transformationFunction: (value, key) => ({ [key]: value }),
+      };
+
+      const spied = vi.spyOn(objectWithFunction, "transformationFunction");
+
+      const value = { package: "transformation value" };
+
+      const transformedValue = transformValueDeep(
+        value,
+        objectWithFunction.transformationFunction
+      );
+
+      expect(spied).toHaveBeenCalled();
+
+      expect(spied.mock.calls[0]).toEqual(["transformation value", "package"]);
+
+      expect(transformedValue).toEqual({
+        package: { package: "transformation value" },
+      });
+    });
+
+    it("call the transformation function for nested object with key", () => {
+      const convertToHundred = (value, key) =>
+        key === "momo" ? value * 100 : value;
+
+      const value = {
+        totalCost: {
+          pizza: 1,
+          momo: 2,
+        },
+        count: {
+          pizza: 3,
+          momo: 4,
+        },
+      };
+
+      const transformedValue = transformValueDeep(value, convertToHundred);
+
+      expect(transformedValue).toEqual({
+        totalCost: {
+          pizza: 1,
+          momo: 200,
+        },
+        count: {
+          pizza: 3,
+          momo: 400,
+        },
+      });
+    });
+
+    it("call the transformation function for nested array with key", () => {
+      const convertToHundred = (value, key) =>
+        key === "momo" ? value * 100 : value;
+
+      const value = {
+        totalCost: {
+          pizza: 1,
+          momo: 2,
+        },
+        count: {
+          pizza: 3,
+          momo: 4,
+        },
+      };
+
+      const transformedValue = transformValueDeep(value, convertToHundred);
+
+      expect(transformedValue).toEqual({
+        totalCost: {
+          pizza: 1,
+          momo: 200,
+        },
+        count: {
+          pizza: 3,
+          momo: 400,
+        },
+      });
+    });
   });
 });

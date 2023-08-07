@@ -18,8 +18,8 @@ function transformValueDeep(valueToBeTransformed, transformationFunction) {
   }
 
   if (isArray(valueToBeTransformed)) {
-    const transformedArray = valueToBeTransformed.map((value) =>
-      transformValueDeep(value, transformationFunction)
+    const transformedArray = valueToBeTransformed.map((value, index) =>
+      transformValueDeep(value, (props) => transformationFunction(props, index))
     );
 
     return transformedArray;
@@ -49,10 +49,8 @@ function transformValueDeep(valueToBeTransformed, transformationFunction) {
       }
 
       if (isArray(value)) {
-        const transformedValue = value.map((singleArrayValue, index) =>
-          transformValueDeep(singleArrayValue, (props) =>
-            transformationFunction(props, index)
-          )
+        const transformedValue = value.map((singleArrayValue) =>
+          transformValueDeep(singleArrayValue, transformationFunction)
         );
 
         acc[key] = transformedValue;
@@ -60,9 +58,7 @@ function transformValueDeep(valueToBeTransformed, transformationFunction) {
         return acc;
       }
 
-      acc[key] = transformValueDeep(value, (props) =>
-        transformationFunction(props, key)
-      );
+      acc[key] = transformValueDeep(value, transformationFunction);
 
       return acc;
     },
